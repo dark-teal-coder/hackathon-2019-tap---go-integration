@@ -1,0 +1,104 @@
+<%@page import="org.apache.tomcat.util.codec.binary.*"%>
+<%@page import="javax.crypto.Mac"%>
+<%@page import="javax.crypto.spec.SecretKeySpec"%>
+<%@page import="java.net.*"%>
+<%@page import="java.nio.charset.StandardCharsets"%>
+<%@page import="java.io.*"%>
+<%@page import="java.util.HashMap" %>
+
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+
+<%
+
+try {
+
+    Base64 base64 =  new Base64(0, null, false);
+    
+    long currentTime = System.currentTimeMillis();
+	
+	HashMap accountSettings = new HashMap();
+	accountSettings.put("merchantName", "Now TV (TXN_HIST)");
+	accountSettings.put("appId", "4277091539"); //App ID
+    accountSettings.put("apiKey", "X67nihnhDKKZFrrUq5euzC5RKlaQdhwcAhoG43x5tqcsOYx9CP6oUoLeoohrd9X4FkPhVzMQMdDP5A0SNmMVVQ=="); //API Key
+    accountSettings.put("publicKey", "MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAkQVirLzD2FW2lKRdKAglPMpzPA1V/MF/CaBzWAqf5nN2AyRwLfeCGpLm5jf8LrTcc7dPiUoPd+E8M2wRlEckTKamckuVaGo+H/5oL9gCkHVrBK0KToX9HywQIWo0KUm0iv0QNxha6duJX+n19hcW9SnG04jazN3VGzWH8z9s/zMCWqxaKCI0kfx2swY0/m3xomr9zHsCRP8bSxi9NsijYfF0rqOlqXqxXqA2hnY3AT1GvK+qOicJFRrUscAKqWSB4qxB/23aLzM/GLc7PsAlH0Ckspl3UFJKqadgfutgurfYCoYMIXp3TLrEjcoJLn/odlNeNnaIDSPHPZ4FLqFcbphrU+j/XYPHsNXwsGFNc9aGXcaL0UW9kvOCdOTWCyhQjjyEVdGWKkpYfrXdszDC3xnkXWP8SNzuGaWr+rRCXlx34fBn1xyWm3eDdrVmYBtwlkWRsYQ7velLY7bIB10PRPDGbt3Im0lReh50kF9/7/3EcQkpqFr9rpplzKBBDpp2G4Rlmh/xQ7VD36Z3MUK67N/F6ptVyL7DEqt3hZROwyRMEDs48K+JoD5v7IGPlyCrAQCvfAIm0YnGW5V1ZdiBzp74O9LiOXNVDjOBpKUFvGx3D0J7CwPtGGN/6Uau+OQLLY4U8XTBsYwiWke4bSGjZZcqf/Xdro9FvbH6t8O0RRECAwEAAQ=="); //Public Key used for encryption, the format should be like this.
+	
+	accountSettings.put("registerAccessTokenUrl", "https://gateway.sandbox.tapngo.com.hk/paymentApi/register/accessToken"); //Register Access Token URL
+	accountSettings.put("queryTxnHistoryUrl","https://gateway.sandbox.tapngo.com.hk/paymentApi/query/transaction/history"); // Query Transaction History URL
+	accountSettings.put("downloadTxnHistoryUrl","https://gateway.sandbox.tapngo.com.hk/paymentApi/download/tansaction/history"); // Download Transaction History URL
+	
+    String appId = String.valueOf(accountSettings.get("appId"));
+    String apiKey = String.valueOf(accountSettings.get("apiKey"));
+    
+    //Arrange parameters in alphabetical order
+    String queryString = "";
+	queryString = "appId=" + appId;
+	queryString += "&timestamp=" + currentTime;
+	
+	Mac sha512_HMAC = null;
+	
+	byte [] byteKey = apiKey.getBytes("UTF-8");
+    final String HMAC_SHA512 = "HmacSHA512";
+    sha512_HMAC = Mac.getInstance(HMAC_SHA512);      
+    SecretKeySpec keySpec = new SecretKeySpec(byteKey, HMAC_SHA512);
+    sha512_HMAC.init(keySpec);
+    byte [] mac_data = sha512_HMAC.doFinal(queryString.getBytes("UTF-8"));
+    String b64_sign = base64.encodeToString(mac_data);
+    
+    String urlParameters  = queryString + "&sign=" + URLEncoder.encode(b64_sign,"UTF-8").replace("+","%20");
+    byte[] postData       = urlParameters.getBytes(StandardCharsets.UTF_8);
+    int    postDataLength = postData.length;
+    String urlString      = String.valueOf(accountSettings.get("registerAccessTokenUrl"));
+    URL    url            = new URL(urlString);
+    
+    //With Proxy
+    Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("proxy.pccw.com", 8080)); 
+    HttpURLConnection conn= (HttpURLConnection) url.openConnection(proxy);
+    
+  	//Without Proxy
+    //HttpURLConnection conn= (HttpURLConnection) url.openConnection();
+    
+    conn.setDoOutput( true );
+    conn.setInstanceFollowRedirects( false );
+    conn.setRequestMethod( "POST" );
+    conn.setRequestProperty( "Content-Type", "application/x-www-form-urlencoded");
+    conn.setRequestProperty( "charset", "utf-8");
+    conn.setRequestProperty( "Content-Length", Integer.toString(postDataLength));
+    conn.setUseCaches(false);
+     
+    DataOutputStream wr = new DataOutputStream(conn.getOutputStream());
+    wr.write(postData);
+    wr.flush();
+    
+    BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8));
+	StringBuffer strBuff = new StringBuffer();
+ 	 
+ 	String inputLine;
+    while ((inputLine = in.readLine()) != null) 
+    	strBuff.append(inputLine);
+    in.close();
+
+    int start = strBuff.toString().indexOf("<accessToken>");
+    int end = strBuff.toString().indexOf("</accessToken>");
+    String acctoken = strBuff.toString().substring(start+13,end);
+ 	 
+%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Test Register Access Token</title>
+</head>
+<body>
+Result:<br><textarea rows='20' cols='130'>
+<%=strBuff.toString().replace("><",">\n<")%>
+</textarea>
+
+</body>
+<%
+} catch (Exception e) {
+    System.out.println("Exception: " + e.toString());
+}
+%>
+
+</html>
