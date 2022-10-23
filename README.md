@@ -4,9 +4,7 @@
 
 ## Repository Description 
 
-This repository contains the code package participants received during [Classified Post Hackathon 2019](https://www.cpjobs.com/hk/article/hacking-for-brighter-future-hackathon-october-2019)
-
-the-young-generation). The entire repository was given in a Hip file on the first day of the competition. 
+This repository contains the code package participants received during [Classified Post Hackathon 2019](https://www.cpjobs.com/hk/article/hacking-for-brighter-future-hackathon-october-2019). The entire repository was given in a Hip file on the first day of the competition. 
 
 ## Hackathon Information
 
