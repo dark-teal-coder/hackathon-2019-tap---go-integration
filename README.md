@@ -1,4 +1,4 @@
-<!-- README file for hackathon packages -->
+<!-- README file for hackathon code packages -->
 
 # Classified Post Hackathon 2019
 
