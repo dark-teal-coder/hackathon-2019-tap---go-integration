@@ -12,3 +12,7 @@ This repository contains the code package participants received during [Classifi
 - <ins>Venue</ins>: Hong Kong Science and Technology Park (HKSTP)
 - <ins>Organizer</ins>: Classified Post 
 - <ins>Co-organizer</ins>: Hong Kong Science and Technology Park (HKSTP) 
+
+&nbsp;
+
+*1st Completion Date: Feb 26, 2022*
